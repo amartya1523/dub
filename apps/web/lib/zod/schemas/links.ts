@@ -561,7 +561,8 @@ export const bulkUpdateLinksBodySchema = z.object({
       "The external IDs of the links to update as stored in your database.",
     )
     .max(100, "You can only update up to 100 links at a time.")
-    .refine((v) => v.map((id) => id.replace("ext_", "")))
+    // remove `ext_` prefix if user passes it (externalIds are stored without it)
+    .transform((v) => v.map((id) => (id.startsWith("ext_") ? id.slice(4) : id)))
     .default([]),
   data: createLinkBodySchema
     .omit({
