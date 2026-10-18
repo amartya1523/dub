@@ -59,11 +59,18 @@ export const getBillingStartDate = (billingCycleStart: number) => {
   const adjustedBillingCycleStart =
     getAdjustedBillingCycleStart(billingCycleStart);
 
-  if (currentDay <= adjustedBillingCycleStart) {
+  if (currentDay < adjustedBillingCycleStart) {
     // if the current day is less than the billing cycle start, we need to go back a month
     const lastMonth = currentMonth === 0 ? 11 : currentMonth - 1; // if the current month is January, we need to go back to December
     const lastYear = currentMonth === 0 ? currentYear - 1 : currentYear; // if the current month is January, we need to go back a year
-    return new Date(lastYear, lastMonth, adjustedBillingCycleStart);
+    // clamp the billing cycle start to the number of days in the previous month
+    // (e.g. a billing cycle start of 31 should resolve to Feb 28, not Mar 3)
+    const lastDayOfLastMonth = new Date(lastYear, lastMonth + 1, 0).getDate();
+    return new Date(
+      lastYear,
+      lastMonth,
+      Math.min(billingCycleStart, lastDayOfLastMonth),
+    );
   } else {
     return new Date(currentYear, currentMonth, adjustedBillingCycleStart);
   }
