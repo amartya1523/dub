@@ -155,7 +155,8 @@ export async function processPayouts({
     payoutFee: workspace.payoutFee,
   });
 
-  if (!payoutFee) {
+  // payoutFee can legitimately be 0 (e.g. waived fees on direct debit), so only treat null as a failure
+  if (payoutFee == null) {
     throw new Error("Failed to calculate payout fee.");
   }
 
