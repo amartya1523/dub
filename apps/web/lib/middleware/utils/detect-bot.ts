@@ -21,9 +21,12 @@ export const detectBot = (req: Request) => {
   }
 
   // Check ua
+  // note: userAgent() always returns an object (even when the header is missing),
+  // so only return early on a positive match, otherwise fall through to the
+  // referer and IP checks below
   const ua = userAgent(req);
 
-  if (ua) {
+  if (ua.ua) {
     const isKnownFalsePositive = UA_FALSE_POSITIVES.some((pattern) =>
       pattern.test(ua.ua),
     );
@@ -31,10 +34,12 @@ export const detectBot = (req: Request) => {
       (s, pattern) => s.replace(pattern, ""),
       ua.ua,
     );
-    return (
+    if (
       (!isKnownFalsePositive && ua.isBot) ||
       UA_BOTS.some((bot) => new RegExp(bot, "i").test(sanitizedUa))
-    );
+    ) {
+      return true;
+    }
   }
 
   // Check referer
